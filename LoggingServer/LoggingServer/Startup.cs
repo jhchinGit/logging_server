@@ -3,10 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace LoggingServer
 {
@@ -22,7 +20,27 @@ namespace LoggingServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages();
+            services.AddCors(options => options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            }));
+
+            services.AddLogging(loggingBuilder =>
+            {
+                var loggingSection = Configuration.GetSection("Logging");
+                loggingBuilder.AddFile("EventLogs\\app_{0:yyyy}-{0:MM}-{0:dd}.log", fileLoggerOpts =>
+                {
+                    fileLoggerOpts.Append = true;
+                    fileLoggerOpts.FileSizeLimitBytes = 1048576;
+                    fileLoggerOpts.MaxRollingFiles = 5;
+                    fileLoggerOpts.FormatLogFileName = fName =>
+                    {
+                        return String.Format(fName, DateTime.UtcNow);
+                    };
+                });
+            });
+
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,12 +50,8 @@ namespace LoggingServer
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-            }
 
-            app.UseStaticFiles();
+            app.UseCors();
 
             app.UseRouting();
 
@@ -45,7 +59,7 @@ namespace LoggingServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }
