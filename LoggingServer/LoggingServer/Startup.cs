@@ -1,3 +1,4 @@
+using LoggingServer.Services.MessageQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,8 @@ namespace LoggingServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<RabbitMqConfiguration>(Configuration.GetSection("RabbitMq"));
+
             services.AddCors(options => options.AddDefaultPolicy(builder =>
             {
                 builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
@@ -39,6 +42,8 @@ namespace LoggingServer
                     };
                 });
             });
+
+            services.AddHostedService<CusumerTraceLogReceiver>();
 
             services.AddControllers();
         }
