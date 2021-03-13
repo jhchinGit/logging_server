@@ -30,7 +30,6 @@ namespace LoggingServer
 
             services.AddLogging(loggingBuilder =>
             {
-                var loggingSection = Configuration.GetSection("Logging");
                 loggingBuilder.AddFile("EventLogs\\app_{0:yyyy}-{0:MM}-{0:dd}.log", fileLoggerOpts =>
                 {
                     fileLoggerOpts.Append = true;
